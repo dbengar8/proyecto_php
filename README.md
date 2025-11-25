@@ -37,25 +37,24 @@ La forma más sencilla de probar la aplicación sin configurar Apache/XAMPP es u
 └── README.md               # Documentación del proyecto
 ```
 
-Detalles Técnicos y Funcionalidades
+## Detalles Técnicos y Funcionalidades
 
-1. Validación de Datos (`src/validaciones.php`)
+### 1. Validación de Datos (`src/validaciones.php`)
 Se han implementado funciones específicas para asegurar la integridad de los datos:
 + DNI: Se verifica el formato (8 números + Letra) y se calcula la letra correcta mediante el algoritmo del módulo 23.
 + Email: Uso de `filter_var` con `FILTER_VALIDATE_EMAIL`.
 + Teléfono: Validación mediante Expresiones Regulares (Regex) para formato español (9 dígitos empezando por 6, 7, 8 o 9).
 + Fechas: Comprobación de existencia real de la fecha (`checkdate`).
 
-2. Seguridad `(limpiarEntrada)`
+### 2. Seguridad `(limpiarEntrada)`
 Para prevenir ataques básicos como XSS (Cross-Site Scripting), todos los datos de entrada pasan por una función de sanitización que aplica:
 + `trim()`: Elimina espacios innecesarios.
 + `stripslashes()`: Elimina barras invertidas.
 + `htmlspecialchars()`: Convierte caracteres especiales en entidades HTML.
 
-3. Persistencia de Datos
-
+### 3. Persistencia de Datos
 Si el formulario contiene errores, el sistema mantiene los datos introducidos por el usuario en los campos correctos, evitando que tenga que reescribir todo el formulario (función `valorAntiguo`).
 
-4. Modularidad (`src/datos.php`)
+### 4. Modularidad (`src/datos.php`)
 
 Los datos de Provincias, Sedes y Departamentos no están "hardcodeados" en el HTML, sino que se cargan dinámicamente desde arrays PHP, simulando una carga desde base de datos y facilitando el mantenimiento futuro.
