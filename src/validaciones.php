@@ -1,66 +1,59 @@
 <?php
-/**
- * src/validaciones.php
- * Funciones para limpiar y validar datos.
- */
+require_once 'db.php';
 
 /**
- * Limpia espacios y caracteres especiales para evitar XSS
+ * Obtiene las provincias desde la BD y las devuelve en formato array [id => nombre]
  */
-function limpiarEntrada($dato) {
-    $dato = trim($dato);
-    $dato = stripslashes($dato);
-    $dato = htmlspecialchars($dato);
-    return $dato;
-}
-
-/**
- * Valida formato de DNI español (8 números + Letra correcta)
- */
-function validarDni($dni) {
-    $dni = strtoupper(trim($dni));
-    if (preg_match('/^[0-9]{8}[A-Z]$/', $dni)) {
-        $numero = substr($dni, 0, 8);
-        $letra = substr($dni, -1);
-        $letrasValidas = "TRWAGMYFPDXBNJZSQVHLCKE";
-        $indice = $numero % 23;
-        
-        if ($letrasValidas[$indice] == $letra) {
-            return true;
-        }
+function obtenerProvincias() {
+    try {
+        $pdo = conectarBD();
+        $stmt = $pdo->query("SELECT id, nombre FROM provincias");
+        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Exception $e) {
+        // Si falla, devolvemos array vacío para que no rompa la web, o podríamos loguear el error
+        return [];
     }
-    return false;
 }
 
-/**
- * Valida formato de email
- */
-function validarEmail($email) {
-    return filter_var($email, FILTER_VALIDATE_EMAIL);
-}
-
-/**
- * Valida teléfono (9 dígitos, empezando por 6, 7, 8 o 9)
- */
-function validarTelefono($telefono) {
-    return preg_match('/^[6789][0-9]{8}$/', $telefono);
-}
-
-/**
- * Valida que una fecha sea correcta y no futura (opcional lo de futura)
- */
-function validarFecha($fecha) {
-    // Formato esperado YYYY-MM-DD (input type date)
-    $partes = explode('-', $fecha);
-    if (count($partes) == 3) {
-        return checkdate($partes[1], $partes[2], $partes[0]);
+function obtenerSedes() {
+    try {
+        $pdo = conectarBD();
+        $stmt = $pdo->query("SELECT id, nombre FROM sedes");
+        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Exception $e) {
+        return [];
     }
-    return false;
+}
+
+function obtenerDepartamentos() {
+    try {
+        $pdo = conectarBD();
+        $stmt = $pdo->query("SELECT id, nombre FROM departamentos");
+        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+    } catch (Exception $e) {
+        return [];
+    }
 }
 
 /**
- * Verifica si una opción existe en un array de datos permitidos
+ * Guarda el empleado en la base de datos
  */
-function validarOpcion($valor, $arrayOpciones) {
-    return array_key_exists($valor, $arrayOpciones);
+function guardarEmpleado($datos) {
+    $pdo = conectarBD();
+    $sql = "INSERT INTO empleados (nombre, apellidos, dni, email, telefono, fecha_alta, sede_id, departamento_id) 
+            VALUES (:nombre, :apellidos, :dni, :email, :telefono, :fecha, :sede, :depto)";
+    
+    $stmt = $pdo->prepare($sql);
+    
+    // Asignamos los valores a los parámetros
+    $stmt->execute([
+        ':nombre' => $datos['nombre'],
+        ':apellidos' => $datos['apellidos'],
+        ':dni' => $datos['dni'],
+        ':email' => $datos['email'],
+        ':telefono' => $datos['telefono'],
+        ':fecha' => $datos['fecha_alta'],
+        ':sede' => $datos['sede'], // Aquí llega el ID seleccionado del select
+        ':depto' => $datos['departamento'] // Aquí llega el ID seleccionado del select
+    ]);
 }
