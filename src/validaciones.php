@@ -1,59 +1,44 @@
 <?php
-require_once 'db.php';
-
 /**
- * Obtiene las provincias desde la BD y las devuelve en formato array [id => nombre]
+ * src/validaciones.php
+ * Contiene SOLAMENTE funciones para validar y limpiar datos.
  */
-function obtenerProvincias() {
-    try {
-        $pdo = conectarBD();
-        $stmt = $pdo->query("SELECT id, nombre FROM provincias");
-        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-    } catch (Exception $e) {
-        // Si falla, devolvemos array vacío para que no rompa la web, o podríamos loguear el error
-        return [];
-    }
+
+function limpiarEntrada($dato) {
+    $dato = trim($dato);
+    $dato = stripslashes($dato);
+    $dato = htmlspecialchars($dato);
+    return $dato;
 }
 
-function obtenerSedes() {
-    try {
-        $pdo = conectarBD();
-        $stmt = $pdo->query("SELECT id, nombre FROM sedes");
-        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-    } catch (Exception $e) {
-        return [];
+function validarDni($dni) {
+    $dni = strtoupper(trim($dni));
+    if (preg_match('/^[0-9]{8}[A-Z]$/', $dni)) {
+        $numero = substr($dni, 0, 8);
+        $letra = substr($dni, -1);
+        $letrasValidas = "TRWAGMYFPDXBNJZSQVHLCKE";
+        $indice = $numero % 23;
+        return ($letrasValidas[$indice] == $letra);
     }
+    return false;
 }
 
-function obtenerDepartamentos() {
-    try {
-        $pdo = conectarBD();
-        $stmt = $pdo->query("SELECT id, nombre FROM departamentos");
-        return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
-    } catch (Exception $e) {
-        return [];
-    }
+function validarEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
 }
 
-/**
- * Guarda el empleado en la base de datos
- */
-function guardarEmpleado($datos) {
-    $pdo = conectarBD();
-    $sql = "INSERT INTO empleados (nombre, apellidos, dni, email, telefono, fecha_alta, sede_id, departamento_id) 
-            VALUES (:nombre, :apellidos, :dni, :email, :telefono, :fecha, :sede, :depto)";
-    
-    $stmt = $pdo->prepare($sql);
-    
-    // Asignamos los valores a los parámetros
-    $stmt->execute([
-        ':nombre' => $datos['nombre'],
-        ':apellidos' => $datos['apellidos'],
-        ':dni' => $datos['dni'],
-        ':email' => $datos['email'],
-        ':telefono' => $datos['telefono'],
-        ':fecha' => $datos['fecha_alta'],
-        ':sede' => $datos['sede'], // Aquí llega el ID seleccionado del select
-        ':depto' => $datos['departamento'] // Aquí llega el ID seleccionado del select
-    ]);
+function validarTelefono($telefono) {
+    return preg_match('/^[6789][0-9]{8}$/', $telefono);
+}
+
+function validarFecha($fecha) {
+    $partes = explode('-', $fecha);
+    if (count($partes) == 3) {
+        return checkdate($partes[1], $partes[2], $partes[0]);
+    }
+    return false;
+}
+
+function validarOpcion($valor, $arrayOpciones) {
+    return array_key_exists($valor, $arrayOpciones);
 }
