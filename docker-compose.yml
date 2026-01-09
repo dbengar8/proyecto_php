@@ -7,3 +7,9 @@ services:
     ports:
       - "80:80"
     restart: always
+    environment:
+      # IMPORTANTE: Estas variables son leídas por src/db.php
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
